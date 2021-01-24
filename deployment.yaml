@@ -21,3 +21,19 @@ spec:
         ports:
         - containerPort: 8000
           protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: smrtapp
+  name: smrt-svc
+  namespace: default
+spec:
+  ports:
+  - nodePort: 30008
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    run: smrtapp
+  type: NodePort
