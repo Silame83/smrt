@@ -55,7 +55,7 @@ resource "aws_iam_role_policy" "cb_iam_role" {
       "Action": [
         "ssm:GetParameters"
       ],
-      "Resource": "arn:aws:ssm:eu-west-3:971169515462:parameter/*",
+      "Resource": "arn:aws:ssm:eu-west-3:639716861848:parameter/*",
       "Effect": "Allow"
     },
     {
@@ -110,7 +110,7 @@ resource "aws_iam_role_policy" "cb_iam_role" {
         "ec2:CreateNetworkInterfacePermission"
       ],
       "Resource": [
-        "arn:aws:ec2:eu-west-3:971169515462:network-interface/*"
+        "arn:aws:ec2:eu-west-3:639716861848:network-interface/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -212,8 +212,8 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
+      - docker push $ECR_REPO_URI:latest
       - docker push $ECR_REPO_URI:$IMAGE_TAG
-  discard-paths: yes
 EOF
     git_clone_depth = 1
 
@@ -270,8 +270,8 @@ phases:
       - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/kubectl
       - chmod +x ./kubectl
       - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
-      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
-      - source ~/.bashrc
+#     - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+#     - source ~/.bashrc
   pre_build:
     commands:
       - echo Logging in to Amazon EKS...
@@ -444,7 +444,7 @@ resource "aws_codepipeline" "cp_build" {
         Repo = "smrt"
         Owner = "Silame83"
         Branch = "master"
-        OAuthToken = "6ba2575cc829b0172c749f103d12626ff23c6738"
+        OAuthToken = "da4a97f84934094ba0c5b1bfbf45b06746de2e5b"
       }
     }
   }
@@ -527,9 +527,9 @@ resource "aws_codepipeline" "cp_deploy" {
     aws_codebuild_project.smrt_deploy]
 }
 
-locals {
+/*locals {
   webhook_secret = aws_codebuild_source_credential.cb_sc.token
-}
+}*/
 
 resource "aws_codepipeline_webhook" "cp_webhook" {
   authentication = "GITHUB_HMAC"
@@ -560,3 +560,4 @@ resource "aws_codepipeline_webhook" "cp_webhook" {
   events = [
     "push"]
 }*/
+

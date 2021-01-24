@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: smrtapp
+  name: smrt-deploy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      run: smrtapp
+  template:
+    metadata:
+      labels:
+        run: smrtapp
+    spec:
+      containers:
+      - image: 639716861848.dkr.ecr.eu-west-3.amazonaws.com/smrt:latest
+        imagePullPolicy: Always
+        name: smrt-app
+        ports:
+        - containerPort: 8000
+          protocol: TCP

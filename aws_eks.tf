@@ -3,15 +3,15 @@
     "eks"]
   cidr_blocks = ["10.100.0.0/16"]
 }*/
-data "aws_iam_user" "username_ruslan" {
-  user_name = "ruslan"
-}
-
-resource "aws_iam_user_ssh_key" "ruslan_ssh_key" {
-  encoding = "SSH"
-  public_key = file("~/.ssh/ruslan.pub")
-  username = data.aws_iam_user.username_ruslan.user_name
-}
+//data "aws_iam_user" "username_ruslan" {
+//  user_name = "ruslan"
+//}
+//
+//resource "aws_iam_user_ssh_key" "ruslan_ssh_key" {
+//  encoding = "SSH"
+//  public_key = file("~/.ssh/ruslan.pub")
+//  username = data.aws_iam_user.username_ruslan.user_name
+//}
 
 /*-------------------------Creating Cluster on EKS--------------------------*/
 
@@ -125,10 +125,6 @@ resource "aws_iam_role_policy_attachment" "qa_cluster-AmazonEKS_CNI_Policy" {
 resource "aws_iam_role_policy_attachment" "qa_cluster-AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role = aws_iam_role.qa_cluster_iam_eks-node-group.name
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
 }
 
 /*module "eks" {
