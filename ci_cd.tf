@@ -421,8 +421,8 @@ resource "aws_iam_role_policy" "cp_policy" {
 EOF
 }
 
-resource "aws_codepipeline" "cp_build" {
-  name = "ecr-pipeline"
+resource "aws_codepipeline" "cp_ci_cd" {
+  name = "ci-cd-pipeline"
   role_arn = aws_iam_role.cp_role.arn
   artifact_store {
     location = aws_s3_bucket.smrt_bld_bckt.bucket
@@ -450,11 +450,11 @@ resource "aws_codepipeline" "cp_build" {
   }
 
   stage {
-    name = "Build"
+    name = "CICD_Stage"
 
     action {
       category = "Build"
-      name = "Build"
+      name = "Build-to-ECR"
       owner = "AWS"
       provider = "CodeBuild"
       input_artifacts = [
@@ -467,54 +467,15 @@ resource "aws_codepipeline" "cp_build" {
         ProjectName = "smrt-build"
       }
     }
-  }
-  depends_on = [
-    aws_codebuild_project.smrt_build,
-    aws_codebuild_project.smrt_deploy]
-}
-
-locals {
-  webhook_secret = aws_codebuild_source_credential.cb_sc.token
-}
-
-resource "aws_codepipeline" "cp_deploy" {
-  name = "eks-pipeline"
-  role_arn = aws_iam_role.cp_role.arn
-  artifact_store {
-    location = aws_s3_bucket.smrt_dply_bckt.bucket
-    type = "S3"
-  }
-  stage {
-    name = "Source"
-
-    action {
-      category = "Source"
-      name = "ECR-Source"
-      owner = "AWS"
-      provider = "ECR"
-      version = "1"
-      output_artifacts = [
-        "source_output"]
-
-      configuration = {
-        RepositoryName = aws_ecr_repository.smrt.name
-        ImageTag = "latest"
-      }
-    }
-  }
-
-  stage {
-    name = "Build"
-
     action {
       category = "Build"
-      name = "Build"
+      name = "Deploy-EKS"
       owner = "AWS"
       provider = "CodeBuild"
       input_artifacts = [
         "source_output"]
       output_artifacts = [
-        "build_output"]
+        "deploy_output"]
       version = "1"
 
       configuration = {
@@ -527,15 +488,15 @@ resource "aws_codepipeline" "cp_deploy" {
     aws_codebuild_project.smrt_deploy]
 }
 
-/*locals {
+locals {
   webhook_secret = aws_codebuild_source_credential.cb_sc.token
-}*/
+}
 
 resource "aws_codepipeline_webhook" "cp_webhook" {
   authentication = "GITHUB_HMAC"
   name = "cp_webhook"
   target_action = "Source"
-  target_pipeline = aws_codepipeline.cp_build.name
+  target_pipeline = aws_codepipeline.cp_ci_cd.name
 
   authentication_configuration {
     secret_token = local.webhook_secret
@@ -546,18 +507,4 @@ resource "aws_codepipeline_webhook" "cp_webhook" {
     match_equals = "refs/heads/{Branch}"
   }
 }
-
-/*resource "github_repository_webhook" "ghub_rw" {
-  repository = "https://github.com/Silame83/simple-python-app"
-
-  configuration {
-    url = aws_codepipeline_webhook.cp_webhook.url
-    content_type = "json"
-    insecure_ssl = true
-    secret = local.webhook_secret
-  }
-
-  events = [
-    "push"]
-}*/
 
